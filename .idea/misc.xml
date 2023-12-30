@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.12 (simple_bot)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="scifair" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="nlp-discord-bot" project-jdk-type="Python SDK" />
 </project>
