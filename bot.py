@@ -15,19 +15,40 @@ GUILDS = "Scifair Bot Server"
 
 config_bot = commands.Bot(command_prefix='!sent_bot configure')
 
-@config_bot.command(name='99', help='Responds with a random quote from Brooklyn 99')
-async def nine_nine(ctx):
-    brooklyn_99_quotes = [
-        'I\'m the human form of the 💯 emoji.',
-        'Bingpot!',
-        (
-            'Cool. Cool cool cool cool cool cool cool, '
-            'no doubt no doubt no doubt no doubt.'
-        ),
-    ]
 
-    response = random.choice(brooklyn_99_quotes)
-    await ctx.send(response)
+@config_bot.command()
+async def get_server_name(ctx):
+    await ctx.send("What is the name of your server?")
+
+    @ctx.event
+    async def on_message(message):
+        if message.author == ctx.user:
+            return
+
+        server_name = str(message.content).strip().upper()
+
+        print(f'{username} said: {user_message} ({channel})')
+
+        if message.content[-3:] == " -p":
+            user_message = user_message[0:len(user_message) - 3]
+            await send_message(message, user_message, is_private=True)
+        elif message.content == "!sent_bot configure":
+            # await configure(message)
+            return
+        else:
+            await send_message(message, user_message, is_private=False)
+
+async def main_configure(ctx):
+    try:
+        # if user_message == "!sent_bot configure":
+        #     await configure(message)
+        # else:
+        await ctx.send("Configuration started.")
+
+    except Exception as e:
+        print(e)
+
+
 
 bot.run(TOKEN)
 
