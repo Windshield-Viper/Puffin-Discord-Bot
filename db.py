@@ -8,40 +8,40 @@ load_dotenv()
 DB_URI = os.getenv("DB_URI")
 
 
-def setup_db():
-    # CAUTION: this will delete all data in the database and replace it with the modqueue.json file and the config.json file
-    # Create a new client and connect to the server
-    puffin_db = MongoClient(DB_URI)
-
-    # Send a ping to confirm a successful connection
-    try:
-        puffin_db.admin.command('ping')
-        print("Pinged your deployment. You successfully connected to MongoDB!")
-    except Exception as e:
-        print(e)
-
-    # load in moderation queue
-    with open("modqueue.json", "r") as f:
-        moderation_queue = json.load(f)
-
-    mongo_mod_queue = puffin_db.puffin.modqueue
-
-    # put the mod queue into the database
-    if len(moderation_queue) > 1:
-        mongo_mod_queue.insert_many([moderation_queue])
-    else:
-        mongo_mod_queue.insert_one(moderation_queue)
-    # load in config
-    with open("config.json", "r") as f:
-        config = json.load(f)
-
-    mongo_config = puffin_db.puffin.config
-
-    # put the config into the database
-    mongo_config.insert_many([config])
-
-    # close the connection
-    puffin_db.close()
+# def setup_db():
+#     # CAUTION: this will delete all data in the database and replace it with the modqueue.json file and the config.json file
+#     # Create a new client and connect to the server
+#     puffin_db = MongoClient(DB_URI)
+#
+#     # Send a ping to confirm a successful connection
+#     try:
+#         puffin_db.admin.command('ping')
+#         print("Pinged your deployment. You successfully connected to MongoDB!")
+#     except Exception as e:
+#         print(e)
+#
+#     # load in moderation queue
+#     with open("modqueue.json", "r") as f:
+#         moderation_queue = json.load(f)
+#
+#     mongo_mod_queue = puffin_db.puffin.modqueue
+#
+#     # put the mod queue into the database
+#     if len(moderation_queue) > 1:
+#         mongo_mod_queue.insert_many([moderation_queue])
+#     else:
+#         mongo_mod_queue.insert_one(moderation_queue)
+#     # load in config
+#     with open("config.json", "r") as f:
+#         config = json.load(f)
+#
+#     mongo_config = puffin_db.puffin.config
+#
+#     # put the config into the database
+#     mongo_config.insert_many([config])
+#
+#     # close the connection
+#     puffin_db.close()
 
 
 def get_mod_queue(mongo_client, guild_id):
