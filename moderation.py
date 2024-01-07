@@ -1,8 +1,9 @@
 from model import pos_neg_neu_model, emotion_model, all_emotion_model
 import json
+from pymongo.mongo_client import MongoClient
 
 
-def check_message(message, guild_id):
+def check_message(message, guild_id, mongo_client):
     # look up the guild configuration
     # if the guild is not in the configuration, return false
     # if the guild is in the configuration, check the configuration
@@ -11,15 +12,18 @@ def check_message(message, guild_id):
     neg_bad = False
     unwanted_emotions = []
 
-    with open("config.json", "r") as f:
-        curr_config = json.load(f)
+    # with open("config.json", "r") as f:
+    #     curr_config = json.load(f)
 
-    if str(guild_id) not in curr_config:
+
+    curr_config = mongo_client.puffin.config
+
+    if len([a for a in curr_config.find({"guild": guild_id})]) == 0:
         print("Guild not in config - maybe it hasn't been configured yet?")
         return False
     else:
 
-        guild_config = curr_config[str(guild_id)]
+        guild_config = [a for a in curr_config.find({"guild": guild_id})][0]
         if guild_config["negative_messages_bad"]:
             neg_bad = True
         if guild_config["unwanted_emotions"]:

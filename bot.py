@@ -6,70 +6,35 @@ from discord.ext import commands
 from model import pos_neg_neu_model, emotion_model
 from moderation import check_message
 import discord.ext
-from cryptography.fernet import Fernet
-
-
-def generate_key():
-    return Fernet.generate_key()
-
-def load_key(key_file_path):
-    return open(key_file_path, "rb").read()
-
-def save_key(key, key_file_path):
-    with open(key_file_path, "wb") as key_file:
-        key_file.write(key)
-
-def encrypt_data(data, key):
-    cipher_suite = Fernet(key)
-    encrypted_data = cipher_suite.encrypt(json.dumps(data).encode())
-    return encrypted_data
-
-def decrypt_data(encrypted_data, key):
-    cipher_suite = Fernet(key)
-    decrypted_data = json.loads(cipher_suite.decrypt(encrypted_data).decode())
-    return decrypted_data
-
-
-
+from pymongo.mongo_client import MongoClient
+from db import *
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILDS = os.getenv('DISCORD_GUILD')
-KEY_PATH = os.getenv('KEY_PATH')
+DB_URI = os.getenv("DB_URI")
 
 #GUILDS = "Scifair Bot Server"
+
+
 
 intents = discord.Intents.default()
 intents.message_content = True
 
 sent_bot = commands.Bot(command_prefix='!puffin ', intents=intents)
 
-# if not os.path.exists(key_file_path):
-#     key = generate_key()
-#     save_key(key, key_file_path)
-# else:
-#     key = load_key(key_file_path)
-
-# # Load the JSON data from the file
-# with open(data_file_path, "r") as data_file:
-#     original_data = json.load(data_file)
-#
-# # Encrypt the data
-# encrypted_data = encrypt_data(original_data, key)
-#
-# # Save the encrypted data back to the file
-# with open(data_file_path, "wb") as encrypted_file:
-#     encrypted_file.write(encrypted_data)
-#
-# # Decrypt the data for use
-# decrypted_data = decrypt_data(encrypted_data, key)
-#
-
 with open("modqueue.json", "r") as f:
     moderation_queue = json.load(f)
 
+puffin_db = MongoClient(DB_URI)
+#puffin_db = mongo_cluster.puffin
+
+
 @sent_bot.event
 async def on_ready():
+    mongo_cluster = MongoClient(DB_URI)
+    puffin_db = mongo_cluster.puffin
+
     print(f'Logged in as {sent_bot.user.name} ({sent_bot.user.id})')
     print('------')
     #await sent_bot.tree.sync(guild=discord.Object(id=1185275931904983162))
@@ -80,6 +45,12 @@ async def on_ready():
                 f'{sent_bot.user} is connected to the following guild:\n'
                 f'{guild.name}(id: {guild.id})'
             )
+    try:
+        mongo_cluster.admin.command('ping')
+        print("Successful connection to MongoDB!")
+    except Exception as e:
+        print(e)
+
 @sent_bot.event
 async def on_guild_join(guild):
     print(f'Bot joined a new guild: {guild.name} (ID: {guild.id})')
@@ -128,7 +99,7 @@ async def bot_help(ctx):
                    "`/hello`: Say hello!\n"
                    "`/analyze <message>`: Analyze a message for sentiment and emotion.\n"
                    "`/configure`: Configure the bot for your server. Puffin will send you a private message and save the configuration in an encrypted database.\n"
-                   "`/viewqueue`: View the moderation queue via an ephemeral message.\n"
+                   "`/viewqueue`: View the moderation queue (which is stored in an encrypted database) via an ephemeral message.\n"
                    "`/clearqueue`: Clear the moderation queue.\n"
                    "`/puffin help`: View this help message.\n")
 
@@ -143,7 +114,7 @@ async def configure(ctx):
     try:
         await ctx.response.send_message("Configuration started. Check your private messages.", ephemeral=True)
 
-        server_id = str(ctx.guild.id)
+        server_id = ctx.guild.id
 
         await author.send(f"Configuring server {server_id}.")
 
@@ -160,30 +131,33 @@ async def configure(ctx):
         negative_messages_bad = negative_messages_bad == "y"
 
 
-        with open("config.json", "r") as f:
-            curr_config = json.load(f)
+        # with open("config.json", "r") as f:
+        #     curr_config = json.load(f)
 
-        if str(server_id) in curr_config:
+        if is_guild_in_config(puffin_db, server_id):
             await author.send("Server configuration already exists; updating configuration.")
 
-            # Update the server info with unwanted emotions and whether negative messages are bad
-            curr_config[server_id]["unwanted_emotions"] = unwanted_emotions
-            curr_config[server_id]["negative_messages_bad"] = negative_messages_bad
-            with open("config.json", "w") as f:
-                json.dump(curr_config, f)
-        else:
-            # Store configuration in a JSON file
-            config = {
-                server_id: {
-                    "unwanted_emotions": unwanted_emotions,
-                    "negative_messages_bad": negative_messages_bad
-                }
-            }
-            await author.send("Server configuration does not exist; creating configuration.")
-            curr_config[server_id] = config[server_id]
-            with open("config.json", "w") as f:
-                json.dump(curr_config, f)
+            # # Update the server info with unwanted emotions and whether negative messages are bad
+            # curr_config[server_id]["unwanted_emotions"] = unwanted_emotions
+            # curr_config[server_id]["negative_messages_bad"] = negative_messages_bad
+            # with open("config.json", "w") as f:
+            #     json.dump(curr_config, f)
 
+            update_config(puffin_db, server_id, unwanted_emotions, negative_messages_bad)
+        else:
+            # # Store configuration in a JSON file
+            # config = {
+            #     server_id: {
+            #         "unwanted_emotions": unwanted_emotions,
+            #         "negative_messages_bad": negative_messages_bad
+            #     }
+            # }
+            await author.send("Server configuration does not exist; creating configuration.")
+            # curr_config[server_id] = config[server_id]
+            # with open("config.json", "w") as f:
+            #     json.dump(curr_config, f)
+
+            add_to_config(puffin_db, server_id, unwanted_emotions, negative_messages_bad)
 
 
         await author.send("Configuration saved successfully.")
@@ -201,14 +175,30 @@ async def configure(ctx):
 async def viewqueue(ctx):
     with open("modqueue.json", "r") as f:
         moderation_queue = json.load(f)
+        #moderation_queue = moderation_queue["data"]
     queue_message = "__**Moderation Queue**__:\n\n"
-    for entry in moderation_queue:
-        if entry["guild"] == ctx.guild.id:
-            queue_message += f"**User**: {entry['user']}\n**Content**: `{entry['content']}`\n__[Link to Message](<{entry['link']}>)__\n\n"
+    # for entry in moderation_queue:
+    #     if entry["guild"] == ctx.guild.id:
+    #         queue_message += f"**User**: {entry['user']}\n**Content**: `{entry['content']}`\n__[Link to Message](<{entry['link']}>)__\n\n"
+    db_queue = get_mod_queue(puffin_db, ctx.guild.id)
+    # if len(db_queue) == 1:
+    #     db_queue = [db_queue]
+    if db_queue != []:
+        db_queue_message = "__**Moderation Queue**__:\n\n"
+        for entry in db_queue:
+            try:
+                db_queue_message += f"**User**: {entry['user']}\n**Content**: `{entry['content']}`\n__[Link to Message](<{entry['link']}>)__\n\n"
+                #print("Added user to queue message")
+                #print(db_queue_message)
+            except Exception as err:
+                print(type(entry))
+                print(err)
 
-    if queue_message != "__**Moderation Queue**__:\n\n":
-        await ctx.response.send_message(queue_message, ephemeral=True)
+        if db_queue_message != "__**Moderation Queue**__:\n\n":
+            await ctx.response.send_message(db_queue_message, ephemeral=True)
 
+        else:
+            await ctx.response.send_message("Moderation Queue is empty, this was triggered", ephemeral=True)
     else:
         await ctx.response.send_message("Moderation Queue is empty.", ephemeral=True)
 @sent_bot.tree.command(
@@ -220,15 +210,16 @@ async def viewqueue(ctx):
 @commands.guild_only()
 async def clearqueue(ctx):
     try:
-        with open("modqueue.json", "r") as f:
-            moderation_queue = json.load(f)
-        guild_id = ctx.guild.id
-        guild_mod_queue = []
-        for entry in moderation_queue:
-            if entry["guild"] != guild_id:
-                guild_mod_queue.append(entry)
-        with open("modqueue.json", "w+") as f:
-            json.dump(guild_mod_queue, f)
+        # with open("modqueue.json", "r") as f:
+        #     moderation_queue = json.load(f)
+        # guild_id = ctx.guild.id
+        # guild_mod_queue = []
+        # for entry in moderation_queue:
+        #     if entry["guild"] != guild_id:
+        #         guild_mod_queue.append(entry)
+        # with open("modqueue.json", "w+") as f:
+        #     json.dump({"data": guild_mod_queue}, f)
+        clear_mod_queue(puffin_db, ctx.guild.id)
         await ctx.response.send_message("Moderation Queue cleared.", ephemeral=True)
 
     except Exception as err:
@@ -255,22 +246,27 @@ async def clearqueue(ctx):
 
 @sent_bot.event
 async def on_message(message):
-    with open("modqueue.json", "r") as f:
-        moderation_queue = json.load(f)
+    # with open("modqueue.json", "r") as f:
+    #     moderation_queue = json.load(f)
+    #     #moderation_queue = moderation_queue["data"]
+
     if message.author.bot or message.guild is None:
         return  # Ignore messages from other bots
 
 
-    if check_message(message.content, message.guild.id):
-        moderation_queue.append({
+    if check_message(message.content, message.guild.id, puffin_db):
+        mod_message = {
             "user": message.author.name,
             "content": message.content,
             "link": message.jump_url,
             "guild": message.guild.id,
-        })
+        }
         await message.channel.send(f"Message from {message.author.mention} flagged for moderation: {message.content}")
-        with open("modqueue.json", "r+") as f:
-            json.dump(moderation_queue, f)
+        # moderation_queue = {"data": moderation_queue}
+        # with open("modqueue.json", "r+") as f:
+        #     json.dump(moderation_queue, f)
+
+        add_to_mod_queue(puffin_db, message.guild.id, mod_message)
 
     await sent_bot.process_commands(message)
 
