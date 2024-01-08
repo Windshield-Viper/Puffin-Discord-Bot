@@ -211,7 +211,7 @@ async def on_message(message):
             "guild": message.guild.id,
             "reason": check_message(message.content, message.guild.id, puffin_db)[1],
         }
-        await message.channel.send(f"Message from {message.author.mention} flagged for moderation: {message.content}")
+        #await message.channel.send(f"Message from {message.author.mention} flagged for moderation: {message.content}")
 
         add_to_mod_queue(puffin_db, message.guild.id, mod_message)
 
