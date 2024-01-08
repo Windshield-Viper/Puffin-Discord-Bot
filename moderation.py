@@ -4,17 +4,9 @@ from pymongo.mongo_client import MongoClient
 
 
 def check_message(message, guild_id, mongo_client):
-    # look up the guild configuration
-    # if the guild is not in the configuration, return false
-    # if the guild is in the configuration, check the configuration
-    # if the configuration is not set, return false
-
     neg_bad = False
     unwanted_emotions = []
     zero_shot_labels = []
-
-
-
     curr_config = mongo_client.puffin.config
 
     if len([a for a in curr_config.find({"guild": guild_id})]) == 0:
@@ -29,9 +21,6 @@ def check_message(message, guild_id, mongo_client):
             unwanted_emotions = guild_config["unwanted_emotions"]
         if guild_config["zero_shot_labels"]:
             zero_shot_labels = guild_config["zero_shot_labels"]
-
-
-
 
     # whether the message is positive, negative, or neutral
     base_message = pos_neg_neu_model(message)
@@ -66,6 +55,5 @@ def check_message(message, guild_id, mongo_client):
     for label in zero_shot["labels"]:
         if (zero_shot_labels["scores"][zero_shot_labels["labels"].index(label)] > 0.8):
             return (True, f"Message contains the custom zero shot label {label}")
-
 
     return (False, "Message is not negative and does not contain an unwanted emotion")
