@@ -1,4 +1,4 @@
-from model import pos_neg_neu_model, emotion_model, all_emotion_model
+from models import pos_neg_neu_model, strongest_emotion_model, all_emotion_model, zero_shot_classifier
 import json
 from pymongo.mongo_client import MongoClient
 
@@ -11,16 +11,15 @@ def check_message(message, guild_id, mongo_client):
 
     neg_bad = False
     unwanted_emotions = []
+    zero_shot_labels = []
 
-    # with open("config.json", "r") as f:
-    #     curr_config = json.load(f)
 
 
     curr_config = mongo_client.puffin.config
 
     if len([a for a in curr_config.find({"guild": guild_id})]) == 0:
         print("Guild not in config - maybe it hasn't been configured yet?")
-        return False
+        return (False, "Guild not in config - maybe it hasn't been configured yet?")
     else:
 
         guild_config = [a for a in curr_config.find({"guild": guild_id})][0]
@@ -28,6 +27,8 @@ def check_message(message, guild_id, mongo_client):
             neg_bad = True
         if guild_config["unwanted_emotions"]:
             unwanted_emotions = guild_config["unwanted_emotions"]
+        if guild_config["zero_shot_labels"]:
+            zero_shot_labels = guild_config["zero_shot_labels"]
 
 
 
@@ -42,19 +43,29 @@ def check_message(message, guild_id, mongo_client):
     big_emotions = []
 
     for emotion in emotions:
-        if emotion["score"] > 0.5:
+        if emotion["score"] > 0.8:
             big_emotions.append(emotion["label"])
 
     if neg_bad:
-        if sent_label == "NEG" and sent_score > 0.9:
-            return True
-        elif sent_label == "NEG" and sent_score > 0.5:
+        if sent_label == "NEG" and sent_score < 0.8:
             for emotion in big_emotions:
                 if emotion in unwanted_emotions:
-                    return True
+                    return (True, "Message is fairly negative and contains an unwanted emotion")
+        else:
+            if sent_label == "NEG" and sent_score > 0.8:
+                return (True, "Message is very negative")
+            else:
+                return (False, "Message is not negative and does not contain an unwanted emotion")
     else:
         for emotion in big_emotions:
             if emotion in unwanted_emotions:
-                return True
+                return (True, "Message contains an unwanted emotion")
 
-    return False
+    # zero shot classification
+    zero_shot = zero_shot_classifier(message, zero_shot_labels, multi_label=True)
+    for label in zero_shot["labels"]:
+        if (zero_shot_labels["scores"][zero_shot_labels["labels"].index(label)] > 0.8):
+            return (True, f"Message contains the custom zero shot label {label}")
+
+
+    return (False, "Message is not negative and does not contain an unwanted emotion")

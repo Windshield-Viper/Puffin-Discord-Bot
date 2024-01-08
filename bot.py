@@ -3,7 +3,7 @@ import json
 from dotenv import load_dotenv
 import os
 from discord.ext import commands
-from model import pos_neg_neu_model, emotion_model
+from models import pos_neg_neu_model, strongest_emotion_model
 from moderation import check_message
 import discord.ext
 from pymongo.mongo_client import MongoClient
@@ -67,7 +67,7 @@ async def analyze(ctx, *, p_message:str):
     score = base_message[0]["score"]
 
     # emotion of the message
-    emotion_message = emotion_model(p_message[18:])
+    emotion_message = strongest_emotion_model(p_message[18:])
     emotion_label = emotion_message[0]["label"]
     emotion_score = emotion_message[0]["score"]
 
@@ -87,13 +87,15 @@ async def hello(ctx):
                        )
 async def bot_help(ctx):
     await ctx.response.send_message("Hello! I am Puffin, a open-source NLP-based bot that can analyze and moderate "
-                                    "messages that are negative or contain unwanted emotions. Available commands:\n"
+                                    "messages that are negative or contain unwanted emotions using various techniques such as "
+                                    "sentiment analysis and zero-shot classification. Available commands:\n"
                    "`/hello`: Say hello!\n"
                    "`/analyze <message>`: Analyze a message for sentiment and emotion.\n"
                    "`/configure`: Configure the bot for your server. Puffin will send you a private message and save the configuration in an encrypted database.\n"
                    "`/viewqueue`: View the moderation queue (which is stored in an encrypted database) via an ephemeral message.\n"
                    "`/clearqueue`: Clear the moderation queue.\n"
-                   "`/puffin help`: View this help message.\n")
+                   "`/puffin help`: View this help message.\n"
+                                    "K")
 
 @sent_bot.tree.command(name="configure",
     description="Configure Puffin for your server",
@@ -109,12 +111,21 @@ async def configure(ctx):
 
         await author.send(f"Configuring server {server_id}.")
 
-        await author.send("This bot is capable of analyzing messages for the emotions of sadness, joy, love, anger, "
-                          "fear, and surprise. What are emotions that are possibly irrelevant or unwanted for the purposes of your server? "
-                          "Answer in the format of a comma-separated list of emotions (e.g. `sadness, anger, fear`).")
-        unwanted_emotions = await sent_bot.wait_for("message", check=lambda m: m.author == author, timeout=600)
-        # turn the comma-separated list into a list of emotions
-        unwanted_emotions = [emotion.strip().lower() for emotion in unwanted_emotions.content.split(",")]
+        while True:
+            await author.send("This bot is capable of analyzing messages for the emotions of sadness, joy, love, anger, "
+                              "fear, and surprise. What are emotions that are possibly irrelevant or unwanted for the purposes of your server? "
+                              "Answer in the format of a comma-separated list of emotions (e.g. `sadness, anger, fear`).")
+            potential_emotions = ["sadness", "joy", "love", "anger", "fear", "surprise"]
+            unwanted_emotions = await sent_bot.wait_for("message", check=lambda m: m.author == author, timeout=600)
+            # turn the comma-separated list into a list of emotions
+            unwanted_emotions = [emotion.strip().lower() for emotion in unwanted_emotions.content.split(",")]
+            # check if the emotions are valid
+            for emotion in unwanted_emotions:
+                if emotion not in potential_emotions:
+                    await author.send(f"Invalid emotion: {emotion}. Please try again.")
+                    break
+            else:
+                break
 
         await author.send("Are negative messages more likely to be malicious in your server? (y/n)")
         negative_messages_bad = await sent_bot.wait_for("message", check=lambda m: m.author == author, timeout=600)
@@ -122,14 +133,22 @@ async def configure(ctx):
         # turn the answer into a boolean
         negative_messages_bad = negative_messages_bad == "y"
 
+        await author.send("This bot uses zero-shot text classification to allow you to set custom labels to moderate your server."
+                          " What are some custom labels that you would like to use for zero-shot classification? Answer in the format of a comma-separated list of labels (e.g. `spam, nsfw`).")
+        zero_shot_labels = await sent_bot.wait_for("message", check=lambda m: m.author == author, timeout=600)
+        # turn the comma-separated list into a list of labels
+        zero_shot_labels = [label.strip().lower() for label in zero_shot_labels.content.split(",")]
+
+
+
         if is_guild_in_config(puffin_db, server_id):
             await author.send("Server configuration already exists; updating configuration.")
 
-            update_config(puffin_db, server_id, unwanted_emotions, negative_messages_bad)
+            update_config(puffin_db, server_id, unwanted_emotions, negative_messages_bad, zero_shot_labels)
         else:
             await author.send("Server configuration does not exist; creating configuration.")
 
-            add_to_config(puffin_db, server_id, unwanted_emotions, negative_messages_bad)
+            add_to_config(puffin_db, server_id, unwanted_emotions, negative_messages_bad, zero_shot_labels)
 
         await author.send("Configuration saved successfully.")
 
@@ -150,7 +169,7 @@ async def viewqueue(ctx):
         db_queue_message = "__**Moderation Queue**__:\n\n"
         for entry in db_queue:
             try:
-                db_queue_message += f"**User**: {entry['user']}\n**Content**: `{entry['content']}`\n__[Link to Message](<{entry['link']}>)__\n\n"
+                db_queue_message += f"**User**: {entry['user']}\n**Content**: `{entry['content']}`\n**Reason for flag:** *{entry['reason']}*\n__[Link to Message](<{entry['link']}>)__\n\n"
 
             except Exception as err:
                 print(type(entry))
@@ -184,12 +203,13 @@ async def on_message(message):
         return  # Ignore messages from other bots
 
 
-    if check_message(message.content, message.guild.id, puffin_db):
+    if check_message(message.content, message.guild.id, puffin_db)[0]:
         mod_message = {
             "user": message.author.name,
             "content": message.content,
             "link": message.jump_url,
             "guild": message.guild.id,
+            "reason": check_message(message.content, message.guild.id, puffin_db)[1],
         }
         await message.channel.send(f"Message from {message.author.mention} flagged for moderation: {message.content}")
 

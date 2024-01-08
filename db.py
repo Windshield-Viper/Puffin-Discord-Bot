@@ -84,13 +84,13 @@ def is_guild_in_config(mongo_client, guild_id):
     else:
         return False
 
-def update_config(mongo_client, guild_id, unwanted_emotions, negative_messages_bad):
+def update_config(mongo_client, guild_id, unwanted_emotions, negative_messages_bad, zero_shot_labels):
     mongo_config = mongo_client.puffin.config
-    mongo_config.update_one({"guild": guild_id}, {"$set": {"unwanted_emotions": unwanted_emotions, "negative_messages_bad": negative_messages_bad}})
+    mongo_config.update_one({"guild": guild_id}, {"$set": {"unwanted_emotions": unwanted_emotions, "negative_messages_bad": negative_messages_bad}, "$set": {"zero_shot_labels": zero_shot_labels}}, upsert=True)
 
-def add_to_config(mongo_client, guild_id, unwanted_emotions, negative_messages_bad):
+def add_to_config(mongo_client, guild_id, unwanted_emotions, negative_messages_bad, zero_shot_labels):
     mongo_config = mongo_client.puffin.config
-    mongo_config.insert_one({"guild": guild_id, "unwanted_emotions": unwanted_emotions, "negative_messages_bad": negative_messages_bad})
+    mongo_config.insert_one({"guild": guild_id, "unwanted_emotions": unwanted_emotions, "negative_messages_bad": negative_messages_bad, "zero_shot_labels": zero_shot_labels})
 
 
 
