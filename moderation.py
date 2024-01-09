@@ -34,21 +34,28 @@ def check_message(message, guild_id, mongo_client):
     for emotion in emotions:
         if emotion["score"] > 0.8:
             big_emotions.append(emotion["label"])
+        if emotion["score"] == max([a["score"] for a in emotions]):
+            biggest_emotion = emotion["label"]
+        if emotion["score"] == sorted([a["score"] for a in emotions])[-2]:
+            second_biggest_emotion = emotion["label"]
+
 
     if neg_bad:
         if sent_label == "NEG" and sent_score < 0.8:
-            for emotion in big_emotions:
-                if emotion in unwanted_emotions:
-                    return (True, "Message is fairly negative and contains an unwanted emotion")
+            if biggest_emotion in unwanted_emotions:
+                return (True, f"Message is negative and contains the unwanted emotion {biggest_emotion}")
+            elif second_biggest_emotion in unwanted_emotions:
+                return (True, f"Message is negative and contains the unwanted emotion {second_biggest_emotion}")
         else:
             if sent_label == "NEG" and sent_score > 0.8:
                 return (True, "Message is very negative")
             else:
                 return (False, "Message is not negative and does not contain an unwanted emotion")
     else:
-        for emotion in big_emotions:
-            if emotion in unwanted_emotions:
-                return (True, "Message contains an unwanted emotion")
+        if biggest_emotion in unwanted_emotions:
+            return (True, f"Message contains the unwanted emotion {biggest_emotion}")
+        else:
+            return (False, "Message is not negative and does not contain an unwanted emotion")
 
     # zero shot classification
     zero_shot = zero_shot_classifier(message, zero_shot_labels, multi_label=True)
