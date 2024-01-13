@@ -32,7 +32,7 @@ def check_message(message, guild_id, mongo_client):
     big_emotions = []
 
     for emotion in emotions:
-        if emotion["score"] > 0.8:
+        if emotion["score"] > 0.6:
             big_emotions.append(emotion["label"])
         if emotion["score"] == max([a["score"] for a in emotions]):
             biggest_emotion = emotion["label"]

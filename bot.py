@@ -180,7 +180,16 @@ async def viewqueue(ctx):
                 print(err)
 
         if db_queue_message != "__**Moderation Queue**__:\n\n":
-            await ctx.response.send_message(db_queue_message, ephemeral=True)
+
+            #make the message send in pieces if it's too long
+            if len(db_queue_message) < 2000:
+                await ctx.response.send_message(db_queue_message, ephemeral=True)
+            else:
+                # break the message into pieces and send them
+                db_queue_message_pieces = [db_queue_message[i:i + 2000] for i in range(0, len(db_queue_message), 2000)]
+                for piece in db_queue_message_pieces:
+                    await ctx.response.send_message(piece, ephemeral=True)
+
 
         else:
             await ctx.response.send_message("Moderation Queue is empty, this was triggered", ephemeral=True)
@@ -207,7 +216,7 @@ async def clearqueue(ctx):
 async def on_message(message):
     if message.author.bot or message.guild is None:
         return  # Ignore messages from other bots
-
+    print(check_message(message.content, message.guild.id, puffin_db))
     if check_message(message.content, message.guild.id, puffin_db)[0]:
         mod_message = {
             "user": message.author.name,
