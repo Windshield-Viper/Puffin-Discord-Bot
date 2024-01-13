@@ -1,5 +1,4 @@
 from models import pos_neg_neu_model, strongest_emotion_model, all_emotion_model, zero_shot_classifier
-import json
 from pymongo.mongo_client import MongoClient
 
 
@@ -52,10 +51,12 @@ def check_message(message, guild_id, mongo_client):
             else:
                 return (False, "Message is not negative and does not contain an unwanted emotion")
     else:
-        if biggest_emotion in unwanted_emotions:
+        if (biggest_emotion in unwanted_emotions) and (not ((sent_label == "NEU" and sent_score > 0.60) or (sent_label == "POS" and sent_score > 0.60))):
+            print(sent_label)
+            print(sent_score)
             return (True, f"Message contains the unwanted emotion {biggest_emotion}")
         else:
-            return (False, "Message is not negative and does not contain an unwanted emotion")
+            return (False, "Message does does not contain an unwanted emotion or seems to be very pos/neutral, not set to filter heavily on negative messages")
 
     # zero shot classification
     zero_shot = zero_shot_classifier(message, zero_shot_labels, multi_label=True)
@@ -64,3 +65,18 @@ def check_message(message, guild_id, mongo_client):
             return (True, f"Message contains the custom zero shot label {label}")
 
     return (False, "Message is not negative and does not contain an unwanted emotion")
+
+if __name__ == "__main__":
+    neg_bad = False
+    unwanted_emotions = []
+    zero_shot_labels = []
+
+
+
+
+    # whether the message is positive, negative, or neutral
+    base_message = pos_neg_neu_model("U joking or fr?")
+    sent_label = base_message[0]["label"]
+    sent_score = base_message[0]["score"]
+    # emotion of the message
+    print(base_message)
