@@ -1,13 +1,16 @@
 # Puffin Discord Bot
-The rise in social media users in recent years has made community content moderation difficult. Here's my attempt at changing that, with an open-source Discord bot that aims to help moderators keep their communities safer. Please allow 5-10 seconds for a message to be flagged in a text channel.
+The rise in social media users in recent years has made community content moderation difficult. Here's my attempt at changing that, with an open-source Discord bot that aims to help moderators keep their communities safer.
 
-Puffin is an auto-moderation Discord bot utilizing sentiment analysis and zero-shot learning. Feel free to reach out with pull requests, feature requests, bug reports, or any other comments/issues you may have.
+Puffin is an auto-moderation Discord bot utilizing sentiment analysis and zero-shot learning. Please allow a few seconds for a message to be flagged in a text channel. Feel free to reach out with pull requests, feature requests, bug reports, or any other comments/issues you may have.
 
 # Tech Stack
-- Bot is written using `discord.py`
+- Puffin is written using `discord.py`
 - Database created with `MongoDB`
 - Hosted on a Raspberry Pi 5
 - ML models integrated using Hugging Face Pipelines
+
+# Methodology
+Puffin filters messages based on whether or not they hold specific emotions, their sentiment, zero-shot labels that the user specifies, and more. Flagged messages are added to a moderation queue that can be viewed via an ephemeral message if you have the right permissions. The algorithm used to determine whether or not a message should be flagged can be viewed in `moderation.py`.
 
 # Citations
 Lewis, Mike, et al. ‘BART: Denoising Sequence-to-Sequence Pre-Training for Natural Language Generation, Translation, and Comprehension’. *arXiv Preprint arXiv:1910. 13461*, 2019.
