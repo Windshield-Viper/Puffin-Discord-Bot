@@ -42,29 +42,29 @@ def check_message(message, guild_id, mongo_client):
     if neg_bad:
         if sent_label == "NEG" and sent_score < 0.8:
             if biggest_emotion in unwanted_emotions:
-                return (True, f"Message is negative and contains the unwanted emotion {biggest_emotion}")
+                return (True, f"Negative, contains unwanted emotion {biggest_emotion}")
             elif second_biggest_emotion in unwanted_emotions:
-                return (True, f"Message is negative and contains the unwanted emotion {second_biggest_emotion}")
+                return (True, f"Negative, contains unwanted emotion {second_biggest_emotion}")
         else:
             if sent_label == "NEG" and sent_score > 0.8:
-                return (True, "Message is very negative")
+                return (True, "Very negative")
             else:
-                return (False, "Message is not negative and does not contain an unwanted emotion")
+                return (False, "Not negative, does not contain an unwanted emotion")
     else:
         if (biggest_emotion in unwanted_emotions) and (not ((sent_label == "NEU" and sent_score > 0.60) or (sent_label == "POS" and sent_score > 0.60))):
             print(sent_label)
             print(sent_score)
-            return (True, f"Message contains the unwanted emotion {biggest_emotion}")
+            return (True, f"Unwanted emotion {biggest_emotion}")
         else:
-            return (False, "Message does does not contain an unwanted emotion or seems to be very pos/neutral, not set to filter heavily on negative messages")
+            return (False, "Does not contain an unwanted emotion OR seems to be very pos/neutral")
 
     # zero shot classification
     zero_shot = zero_shot_classifier(message, zero_shot_labels, multi_label=True)
     for label in zero_shot["labels"]:
         if (zero_shot_labels["scores"][zero_shot_labels["labels"].index(label)] > 0.8):
-            return (True, f"Message contains the custom zero shot label {label}")
+            return (True, f"Message contains custom label {label}")
 
-    return (False, "Message is not negative and does not contain an unwanted emotion")
+    return (False, "Not negative, does not contain unwanted emotion")
 
 if __name__ == "__main__":
     neg_bad = False

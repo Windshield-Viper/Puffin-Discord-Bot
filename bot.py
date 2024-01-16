@@ -173,7 +173,7 @@ async def viewqueue(ctx):
         db_queue_message = "__**Moderation Queue**__:\n\n"
         for entry in db_queue:
             try:
-                db_queue_message += f"**User**: {entry['user']}\n**Content**: `{entry['content']}`\n**Reason for flag:** *{entry['reason']}*\n__[Link to Message](<{entry['link']}>)__\n\n"
+                db_queue_message += f"**Content**: `{entry['content']}`\n**Reason for flag:** *{entry['reason']}*\n__[Link to Message](<{entry['link']}>)__\n\n"
 
             except Exception as err:
                 print(type(entry))
@@ -221,7 +221,7 @@ async def on_message(message):
     print(check_message(message.content, message.guild.id, puffin_db))
     if check_message(message.content, message.guild.id, puffin_db)[0]:
         mod_message = {
-            "user": message.author.name,
+            # "user": message.author.name,
             "content": message.content,
             "link": message.jump_url,
             "guild": message.guild.id,
