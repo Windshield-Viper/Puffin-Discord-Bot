@@ -187,7 +187,7 @@ async def viewqueue(ctx):
             else:
                 # tell the user that the message will be sent as a pm
                 await ctx.response.send_message("Moderation Queue is too long to send in a channel, sending as a private message.", ephemeral=True)
-                # break the message into pieces and send them
+                # break the message into pieces and send
                 for i in range(0, len(db_queue_message), 2000):
                     await ctx.user.send(db_queue_message[i:i + 2000])
 
