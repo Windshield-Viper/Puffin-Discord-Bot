@@ -8,11 +8,14 @@ from db import *
 from typing import Literal, Optional
 import discord
 from discord.ext import commands
+from googleapiclient import discovery
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILDS = os.getenv('DISCORD_GUILD')
 DB_URI = os.getenv("DB_URI")
+API_KEY = os.getenv("GOOGLE_API_KEY")
+
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -20,6 +23,14 @@ intents.message_content = True
 sent_bot = commands.Bot(command_prefix='!puffin ', intents=intents)
 
 puffin_db = MongoClient(DB_URI)
+google_api_client = discovery.build(
+        "commentanalyzer",
+        "v1alpha1",
+        developerKey=API_KEY,
+        discoveryServiceUrl="https://commentanalyzer.googleapis.com/$discovery/rest?version=v1alpha1",
+        static_discovery=False,
+    )
+
 
 
 @sent_bot.event
@@ -218,14 +229,14 @@ async def clearqueue(ctx):
 async def on_message(message):
     if message.author.bot or message.guild is None:
         return  # Ignore messages from other bots
-    print(check_message(message.content, message.guild.id, puffin_db))
-    if check_message(message.content, message.guild.id, puffin_db)[0]:
+    print(check_message(message.content, message.guild.id, puffin_db, google_api_client))
+    if check_message(message.content, message.guild.id, puffin_db, google_api_client)[0]:
         mod_message = {
             # "user": message.author.name,
             "content": message.content,
             "link": message.jump_url,
             "guild": message.guild.id,
-            "reason": check_message(message.content, message.guild.id, puffin_db)[1],
+            "reason": check_message(message.content, message.guild.id, puffin_db, google_api_client)[1],
         }
         # await message.channel.send(f"Message from {message.author.mention} flagged for moderation: {message.content}")
 
