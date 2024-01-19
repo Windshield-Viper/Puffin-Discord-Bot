@@ -143,7 +143,7 @@ async def configure(ctx):
             else:
                 break
 
-        await author.send("Are negative messages more likely to be malicious in your server? Keep in mind that answering 'y' will flag any messages"
+        await author.send("Are negative messages more likely to be malicious in your server? Keep in mind that answering 'y' will flag any messages "
                           "in the server that seem to be negative. (y/n)")
         negative_messages_bad = await sent_bot.wait_for("message", check=lambda m: m.author == author, timeout=600)
         negative_messages_bad = str(negative_messages_bad.content).strip().lower()
