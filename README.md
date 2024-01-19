@@ -1,6 +1,8 @@
 # Puffin Discord Bot
 The rise in social media users in recent years has made community content moderation difficult. Here's my attempt at changing that, with an open-source Discord bot that aims to help moderators keep their communities safer.
 
+[Bot Invite Link](https://discord.com/api/oauth2/authorize?client_id=1185076125752365136&permissions=1376537085952&scope=bot)
+
 Puffin is an auto-moderation Discord bot utilizing sentiment analysis and zero-shot learning. Please allow a few seconds for a message to be flagged in a text channel. Feel free to reach out with pull requests, feature requests, bug reports, or any other comments/issues you may have.
 
 # Tech Stack
