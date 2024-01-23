@@ -3,7 +3,13 @@ The rise in social media users in recent years has made community content modera
 
 [Bot Invite Link](https://discord.com/api/oauth2/authorize?client_id=1185076125752365136&permissions=1376537085952&scope=bot)
 
+[Top.gg link](https://top.gg/bot/1185076125752365136)
+
 Puffin is an auto-moderation Discord bot utilizing sentiment analysis and zero-shot learning. In addition, it also uses Google's Toxicity API. Please allow a few seconds for a message to be flagged in a text channel. Feel free to reach out with pull requests, feature requests, bug reports, or any other comments/issues you may have.
+
+
+<img src="https://github.com/Windshield-Viper/Puffin-Discord-Bot/assets/109366063/0debaaaa-0697-4535-a0b3-f3ea9ee95ff1" width="400">
+
 
 # Tech Stack
 - Puffin is written using `discord.py`
