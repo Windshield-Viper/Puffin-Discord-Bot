@@ -18,7 +18,7 @@ Puffin is an auto-moderation Discord bot utilizing sentiment analysis and zero-s
 - ML models integrated using Hugging Face Pipelines
 
 # Methodology
-Puffin filters messages based on whether or not they hold specific emotions, their sentiment, zero-shot labels that the user specifies, and more. Flagged messages are added to a moderation queue that can be viewed via an ephemeral message if you have the right permissions. The algorithm used to determine whether or not a message should be flagged can be viewed in `moderation.py`.
+Puffin filters messages based on whether or not they hold specific emotions, their sentiment, zero-shot labels that the user specifies, and more. Flagged messages are added to a moderation queue that can be viewed via an ephemeral message if you have the right permissions. The algorithm used to determine whether or not a message should be flagged can be viewed in `moderation.py`. Future versions will iterate upon this algorithm.
 
 # Citations
 Lewis, Mike, et al. ‘BART: Denoising Sequence-to-Sequence Pre-Training for Natural Language Generation, Translation, and Comprehension’. *arXiv Preprint arXiv:1910. 13461*, 2019.
