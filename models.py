@@ -1,4 +1,4 @@
-from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification
+from transformers import pipeline
 
 pos_neg_neu_model = pipeline(model="finiteautomata/bertweet-base-sentiment-analysis")
 
