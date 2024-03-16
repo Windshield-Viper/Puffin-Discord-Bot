@@ -8,13 +8,13 @@ from db import *
 from typing import Literal, Optional
 import discord
 from discord.ext import commands
-from googleapiclient import discovery
+# from googleapiclient import discovery
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILDS = os.getenv('DISCORD_GUILD')
 DB_URI = os.getenv("DB_URI")
-API_KEY = os.getenv("GOOGLE_API_KEY")
+# API_KEY = os.getenv("GOOGLE_API_KEY")
 
 
 intents = discord.Intents.default()
@@ -23,18 +23,19 @@ intents.message_content = True
 sent_bot = commands.Bot(command_prefix='!puffin ', intents=intents)
 
 puffin_db = MongoClient(DB_URI)
-google_api_client = discovery.build(
-        "commentanalyzer",
-        "v1alpha1",
-        developerKey=API_KEY,
-        discoveryServiceUrl="https://commentanalyzer.googleapis.com/$discovery/rest?version=v1alpha1",
-        static_discovery=False,
-    )
-
+# google_api_client = discovery.build(
+#         "commentanalyzer",
+#         "v1alpha1",
+#         developerKey=API_KEY,
+#         discoveryServiceUrl="https://commentanalyzer.googleapis.com/$discovery/rest?version=v1alpha1",
+#         static_discovery=False,
+#     )
+#
 
 
 @sent_bot.event
 async def on_ready():
+
     mongo_cluster = MongoClient(DB_URI)
     puffin_db = mongo_cluster.puffin
 
@@ -73,7 +74,7 @@ async def on_guild_join(guild):
     description="Analyzes a message for sentiment and emotion.",
 )
 async def analyze(ctx, *, p_message: str):
-    # whether the message is positive, negative, or neutral
+
     base_message = pos_neg_neu_model(p_message[18:])
     label = base_message[0]["label"]
     score = base_message[0]["score"]
@@ -111,6 +112,10 @@ async def bot_help(ctx):
                                     "`/puffin help`: View this help message.\n"
                                     )
 
+@commands.is_owner() #make sure no one else uses it
+@sent_bot.command()
+async def stop_bot(ctx):
+    exit()
 
 @sent_bot.tree.command(name="configure",
                        description="Configure Puffin for your server",
@@ -157,14 +162,22 @@ async def configure(ctx):
         # turn the comma-separated list into a list of labels
         zero_shot_labels = [label.strip().lower() for label in zero_shot_labels.content.split(",")]
 
+        await author.send(
+            "This bot has the ability to moderate general English very well, but if there are server-specific words or phrases that you would like to moderate, "
+            "please leave them here, along with a score from -3 to 3 (-3 being really bad, 3 being as good as it gets). Answer in the format of a comma-separated list of terms and scores (e.g. `love:3, hate:-2`).")
+        lexicon = await sent_bot.wait_for("message", check=lambda m: m.author == author, timeout=600)
+        # turn the comma-separated list into a list of labels
+        # needs to be a dictionary
+        lexicon = {term.split(":")[0].strip().lower(): int(term.split(":")[1].strip()) for term in lexicon.content.split(",")}
+
         if is_guild_in_config(puffin_db, server_id):
             await author.send("Server configuration already exists; updating configuration.")
 
-            update_config(puffin_db, server_id, unwanted_emotions, negative_messages_bad, zero_shot_labels)
+            update_config(puffin_db, server_id, unwanted_emotions, negative_messages_bad, zero_shot_labels, lexicon)
         else:
             await author.send("Server configuration does not exist; creating configuration.")
 
-            add_to_config(puffin_db, server_id, unwanted_emotions, negative_messages_bad, zero_shot_labels)
+            add_to_config(puffin_db, server_id, unwanted_emotions, negative_messages_bad, zero_shot_labels, lexicon)
 
         await author.send("Configuration saved successfully.")
 
@@ -229,14 +242,14 @@ async def clearqueue(ctx):
 async def on_message(message):
     if message.author.bot or message.guild is None:
         return  # Ignore messages from other bots
-    print(check_message(message.content, message.guild.id, puffin_db, google_api_client))
-    if check_message(message.content, message.guild.id, puffin_db, google_api_client)[0]:
+    print(check_message(message.content, message.guild.id, puffin_db))
+    if check_message(message.content, message.guild.id, puffin_db)[0]:
         mod_message = {
             # "user": message.author.name,
             "content": message.content,
             "link": message.jump_url,
             "guild": message.guild.id,
-            "reason": check_message(message.content, message.guild.id, puffin_db, google_api_client)[1],
+            "reason": check_message(message.content, message.guild.id, puffin_db)[1],
         }
         # await message.channel.send(f"Message from {message.author.mention} flagged for moderation: {message.content}")
 
@@ -279,7 +292,6 @@ async def sync(ctx: commands.Context, guilds: commands.Greedy[discord.Object],
             ret += 1
 
     await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
-
 
 def run_sent_bot():
     sent_bot.run(TOKEN)

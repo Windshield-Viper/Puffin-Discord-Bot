@@ -1,3 +1,6 @@
+import nltk
+nltk.download('vader_lexicon')
+
 import bot
 import signal
 import atexit
@@ -17,6 +20,7 @@ def kill_handler(*args):
 
 if __name__ == '__main__':
     # run the bot
+
 
     atexit.register(exit_handler)
     signal.signal(signal.SIGINT, kill_handler)
