@@ -5,7 +5,7 @@ The rise in social media users in recent years has made community content modera
 
 [Top.gg link](https://top.gg/bot/1185076125752365136)
 
-Puffin is an auto-moderation Discord bot utilizing sentiment analysis and zero-shot learning. In addition, it also uses Google's Toxicity API. Please allow a few seconds for a message to be flagged in a text channel. Feel free to reach out with pull requests, feature requests, bug reports, or any other comments/issues you may have.
+Puffin is an auto-moderation Discord bot utilizing sentiment analysis and zero-shot learning. Please allow a few seconds for a message to be flagged in a text channel. Feel free to reach out with pull requests, feature requests, bug reports, or any other comments/issues you may have.
 
 
 <img src="https://github.com/Windshield-Viper/Puffin-Discord-Bot/assets/109366063/0debaaaa-0697-4535-a0b3-f3ea9ee95ff1" width="400">
@@ -16,11 +16,12 @@ Puffin is an auto-moderation Discord bot utilizing sentiment analysis and zero-s
 - Database created with `MongoDB`
 - Hosted on a Raspberry Pi 5
 - ML models integrated using Hugging Face Pipelines
+- ML model fine-tuned on Discord and Twitter data using Hugging Face Transformers
 
 # Methodology
-Puffin filters messages based on whether or not they hold specific emotions, their sentiment, zero-shot labels that the user specifies, and more. Flagged messages are added to a moderation queue that can be viewed via an ephemeral message if you have the right permissions. The algorithm used to determine whether or not a message should be flagged can be viewed in `moderation.py`. Future versions will iterate upon this algorithm.
+Puffin filters messages based on whether or not they hold specific emotions, their sentiment, zero-shot labels that the user specifies, and more. Flagged messages are added to a moderation queue that can be viewed via an ephemeral message if you have the right permissions. The algorithm used to determine whether or not a message should be flagged can be viewed in `moderation.py`. Future versions will iterate upon this algorithm. A custom-trained model trained on Discord and Twitter data is used. 
 
-# Citations
+# Selected Citations
 Lewis, Mike, et al. ‘BART: Denoising Sequence-to-Sequence Pre-Training for Natural Language Generation, Translation, and Comprehension’. *arXiv Preprint arXiv:1910. 13461*, 2019.
 
 Pérez, Juan Manuel, et al. ‘Pysentimiento: A Python Toolkit for Sentiment Analysis and SocialNLP Tasks’. _arXiv [Cs.CL],_ 2021, http://arxiv.org/abs/2106.09462. arXiv.
