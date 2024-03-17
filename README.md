@@ -22,11 +22,17 @@ Puffin filters messages based on whether or not they hold specific emotions, the
 
 # Selected Citations
 Devlin, Jacob, et al. BERT: Pre-Training of Deep Bidirectional Transformers for Language Understanding. arXiv:1810.04805, arXiv, 24 May 2019. arXiv.org, https://doi.org/10.48550/arXiv.1810.04805.
+
 “Facebook: Global Daily Active Users 2023.” Statista, https://www.statista.com/statistics/346167/facebook-global-dau/. Accessed 15 Mar. 2024.
+
 Hutto, C.J. & Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for Sentiment Analysis of Social Media Text. Eighth International Conference on Weblogs and Social Media (ICWSM-14). Ann Arbor, MI, June 2014.
+
 Lewis, Mike, et al. ‘BART: Denoising Sequence-to-Sequence Pre-Training for Natural Language Generation, Translation, and Comprehension’. arXiv Preprint arXiv:1910. 13461, 2019.
+
 Pérez, Juan Manuel, et al. ‘Pysentimiento: A Python Toolkit for Sentiment Analysis and SocialNLP Tasks’. arXiv [Cs.CL], 2021, http://arxiv.org/abs/2106.09462. arXiv.
+
 Ribeiro, Marco Tulio, et al. “Why Should I Trust You?”: Explaining the Predictions of Any Classifier. arXiv:1602.04938, arXiv, 9 Aug. 2016. arXiv.org, https://doi.org/10.48550/arXiv.1602.04938.
+
 Sanh, V., Debut, L., Chaumond, J., & Wolf, T. (2019). DistilBERT, a distilled version of BERT: Smaller, faster, cheaper and lighter. ArXiv. /abs/1910.01108
 
 
