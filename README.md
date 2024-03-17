@@ -8,7 +8,7 @@ The rise in social media users in recent years has made community content modera
 Puffin is an auto-moderation Discord bot utilizing sentiment analysis and zero-shot learning. Please allow a few seconds for a message to be flagged in a text channel. Feel free to reach out with pull requests, feature requests, bug reports, or any other comments/issues you may have.
 
 
-<img src="https://github.com/Windshield-Viper/Puffin-Discord-Bot/assets/109366063/0debaaaa-0697-4535-a0b3-f3ea9ee95ff1" width="400">
+![image](https://github.com/Windshield-Viper/Puffin-Discord-Bot/assets/109366063/d534dcf1-e00e-4284-b4da-560d68f043b6)
 
 
 # Tech Stack
