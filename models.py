@@ -9,3 +9,5 @@ all_emotion_model = pipeline("text-classification", model='bhadresh-savani/disti
 zero_shot_classifier = pipeline("zero-shot-classification",
                                 model="facebook/bart-large-mnli")
 vader = SentimentIntensityAnalyzer()
+
+custom_model = pipeline("text-classification", model="windshield-viper/discord-twitter-distilbert-updated")

@@ -1,4 +1,4 @@
-from models import pos_neg_neu_model, strongest_emotion_model, all_emotion_model, zero_shot_classifier, vader
+from models import pos_neg_neu_model, strongest_emotion_model, all_emotion_model, zero_shot_classifier, vader, custom_model
 from pymongo.mongo_client import MongoClient
 # from googleapiclient import discovery
 from dotenv import load_dotenv
@@ -46,6 +46,9 @@ def check_message(message, guild_id, mongo_client):
 
     big_emotions = []
 
+    custom_model_sent = custom_model(message)[0]["label"]
+    custom_model_score = custom_model(message)[0]["score"]
+
     # toxicity_response = google_api_client.comments().analyze(body=analyze_request).execute()
     # toxicity_response = float(json.dumps(toxicity_response["attributeScores"]["TOXICITY"]["summaryScore"]["value"], indent=2))
     if lexicon:
@@ -73,6 +76,8 @@ def check_message(message, guild_id, mongo_client):
             else:
                 if vader_response < -0.4:
                     return (True, "Very negative")
+                if custom_model_sent=="LABEL_0" and custom_model_score > 0.8:
+                    return (True, "Message is very negative")
                 return (False, "Not negative, does not contain an unwanted emotion")
     else:
         if (biggest_emotion in unwanted_emotions) and (not ((sent_label == "NEU" and sent_score > 0.60) or (sent_label == "POS" and sent_score > 0.60))):
@@ -91,7 +96,7 @@ def check_message(message, guild_id, mongo_client):
         if (zero_shot_labels["scores"][zero_shot_labels["labels"].index(label)] > 0.8):
             return (True, f"Message contains custom label {label}")
 
-    return (False, "Not negative, does not contain unwanted emotion, low toxicity score, and does not contain custom filters")
+    return (False, "Not negative, does not contain unwanted emotions, and does not contain custom filters")
 
 if __name__ == "__main__":
     # neg_bad = False
