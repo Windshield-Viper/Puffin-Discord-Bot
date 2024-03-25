@@ -18,7 +18,7 @@ Puffin is an auto-moderation Discord bot utilizing sentiment analysis and zero-s
 - ML model fine-tuned on Discord and Twitter data using Hugging Face Transformers
 
 # Methodology
-Puffin filters messages based on whether or not they hold specific emotions, their sentiment, zero-shot labels that the user specifies, and more. Flagged messages are added to a moderation queue that can be viewed via an ephemeral message if you have the right permissions. The algorithm used to determine whether or not a message should be flagged can be viewed in `moderation.py`. Future versions will iterate upon this algorithm. A custom-trained model trained on Discord and Twitter data is used. 
+Puffin filters messages based on whether or not they hold specific emotions, their sentiment, zero-shot labels that the user specifies, and more. Flagged messages are added to a moderation queue that can be viewed via an ephemeral message if you have the right permissions. The algorithm used to determine whether or not a message should be flagged can be viewed in `moderation.py`. Future versions will iterate upon this algorithm. A custom-trained model trained on Discord and Twitter data is used, and tools such as HateCheck and LIME were used to make this model more explainable.
 
 # Selected Citations
 Devlin, Jacob, et al. BERT: Pre-Training of Deep Bidirectional Transformers for Language Understanding. arXiv:1810.04805, arXiv, 24 May 2019. arXiv.org, https://doi.org/10.48550/arXiv.1810.04805.
